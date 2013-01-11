@@ -1,5 +1,7 @@
 /*
- * rosserial Publisher for Wii Nunchuck
+ *******************************************************************************
+ *  nun_ros - rosserial Publisher for Wii Nunchuck
+ *******************************************************************************
  *  matches ps3joy output format
  *     +0 => left (sx<133); -0 => right (sx>133)
  *     +1 => forward (sy>134); -1 => backward (sy<134)
@@ -8,6 +10,26 @@
  *     +16 => left accel (ax>512); -16 => right accel (ax<512)
  *     +17 => forward accel (ay<512); -17 => backward accel (ay>512)
  *     +18 => up accel (az>512); -18 => down accel (az<512)
+ *  
+ *******************************************************************************
+ *  LEGAL STUFF
+ *******************************************************************************
+ *  Copyright (c) 2012 Matthew Paulishen. All rights reserved.
+ *  
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *  
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *  
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *  
+ *******************************************************************************
  */
 
 #include <ros.h>
