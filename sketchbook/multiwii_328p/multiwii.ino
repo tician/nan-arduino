@@ -29,6 +29,9 @@
 // HobbyKing MultiWii ITG3205 + BMA180 + BMP085 + HMC5883L port
 //   http://www.hobbyking.com/hobbyking/store/uh_viewItem.asp?idProduct=27033
 #include <ros.h>
+#include <sensor_msgs/Imu.h>
+//#include <std_msgs/String.h>
+
 #define TWI_FREQ 400000L
 #include <Wire.h>
 
@@ -39,76 +42,119 @@
 
 ros::NodeHandle nh;
 
-sensor_msgs::Joy joy_msg;
-ros::Publisher nutter("joy", &joy_msg);
-float joy_axes[20] = {};
+/*
+ * This is a message to hold data from an IMU (Inertial Measurement Unit)
+ *
+ * Accelerations should be in m/s^2 (not in g's), and rotational velocity
+ *   should be in rad/sec.
+ * If the covariance of the measurement is known, it should be filled in
+ *  (if all you know is the variance of each measurement, e.g. from the
+ *   datasheet, just put those along the diagonal)
+ * A covariance matrix of all zeros will be interpreted as "covariance unknown",
+ *   and to use the data a covariance will have to be assumed or gotten from
+ *   some other source
+ * If you have no estimate for one of the data elements (e.g. your IMU doesn't
+ *   produce an orientation estimate), please set element 0 of the associated
+ *   covariance matrix to -1.
+ * If you are interpreting this message, please check for a value of -1 in
+ *   the first element of each covariance matrix, and disregard the associated
+ *   estimate.
+ *
+ * Header header
+ *     uint32 seq
+ *     time stamp
+ *     string frame_id
+ * geometry_msgs/Quaternion orientation
+ *     float64 x
+ *     float64 y
+ *     float64 z
+ *     float64 w
+ * float64[9] orientation_covariance
+ * geometry_msgs/Vector3 angular_velocity
+ *     float64 x
+ *     float64 y
+ *     float64 z
+ * float64[9] angular_velocity_covariance
+ * geometry_msgs/Vector3 linear_acceleration
+ *     float64 x
+ *     float64 y
+ *     float64 z
+ * float64[9] linear_acceleration_covariance
+ */
+sensor_msgs::Imu imu_msg;
+ros::Publisher nutter("emu", &imu_msg);
+geometry_msgs::Quaternion ori_;
+geometry_msgs::Vector3 ang_;
+geometry_msgs::Vector3 lin_;
+
+float ori_cov_[9] =
+{
+	0,0,0,
+	0,0,0,
+	0,0,0
+};
+float ang_cov_[9] =
+{
+	0,0,0,
+	0,0,0,
+	0,0,0
+};
+float lin_cov_[9] =
+{
+	0,0,0,
+	0,0,0,
+	0,0,0
+};
+
+
+
+char frame_id_[] = "emu_center";
 
 //std_msgs::String str_msg;
 //ros::Publisher chatter("chatter", &str_msg);
 //char str[19] = "I'm still alive...";
 
-nunchuck_t curr_nun;
+void getCovariances(void)
+{
+
+}
 
 void setup()
 {
 	nh.initNode();
 	nh.advertise(nutter);
 //	nh.advertise(chatter);
-	upchuck();
 
-	for (int i=4; i<16; i++)
-	{
-		joy_axes[i] = 1.0;
-	}
+	getCovariances();
 
-	joy_axes[19] = 0.0;
+	Wire.begin();
+
+
 }
 
 void loop()
 {
+
 	barfitup(&curr_nun);
 	int16_t temp;
 
-	joy_msg.header.stamp = nh.now();
-	joy_msg.axes_length = 20;
+	imu_msg.header.stamp = nh.now();
+	imu_msg.header.frame_id = frame_id_;
 
-	// Left Stick: +L -R
-	temp = curr_nun.sx - 133;
-	joy_axes[0] = (float) (temp/-128.0);
-	// Left Stick: +F -B
-	temp = curr_nun.sy - 134;
-	joy_axes[1] = (float) (temp/128.0);
-	// Right Stick: +L -R
-//	joy_axes[2] = 0.0;
-	// Right Stick: +F -B
-//	joy_axes[3] = 0.0;
 
-	if (curr_nun.bz)
-		joy_axes[8] = -1.0;
-	else
-		joy_axes[8] = 1.0;
-	if (curr_nun.bc)
-		joy_axes[10] = -1.0;
-	else
-		joy_axes[10] = 1.0;
-	
-	// ACCEL: +L -R
-	temp = curr_nun.ax - 512;
-	joy_axes[16] = (float) temp/512.0;
-	// ACCEL: +F -B
-	temp = curr_nun.ay - 512;
-	joy_axes[17] = (float) temp/-512.0;
-	// ACCEL: +U -D
-	temp = curr_nun.az - 512;
-	joy_axes[18] = (float) temp/512.0;
 
-	joy_msg.axes = joy_axes;
-	
-	nutter.publish(&joy_msg);
+	imu_msg.orientation.x = ori_[0];
+	imu_msg.orientation.y = ori_[1];
+	imu_msg.orientation.z = ori_[2];
+	imu_msg.orientation.w = ori_[3];
 
+
+
+
+	nutter.publish(&imu_msg);
 
 //	char str_out[30] = {};
-	
+
 //	temp = curr_nun.sx - 133;
 //	sprintf(str_out, "sx:%d", temp);
 
