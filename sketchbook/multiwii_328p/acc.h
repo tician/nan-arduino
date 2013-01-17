@@ -45,12 +45,12 @@ volatile sensor_t acc_;
 //  0: 
 
 
-void gyrStart(void)
+void accStart(void)
 {
 	
 }
 
-void gyrGet(void)
+void accGet(void)
 {
 	Wire.beginTransmission(ACC_ADDR);
 	Wire.requestFrom(ACC_ADDR_S, 1);
