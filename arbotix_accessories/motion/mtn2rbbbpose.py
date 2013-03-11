@@ -47,6 +47,12 @@ parser.add_option(  "-p", "--prefix", dest="seqPrefix",
 parser.add_option(  "-O", "--size", dest="sizeOptimize", default=False,
                     help="Only use one servo ID array per processed motion file",
                     action="store_true")
+parser.add_option(  "--arm", dest="usinglibmaple", default=False,
+                    help="Use libmaple's __FLASH__ instead of avr PROGMEM",
+                    action="store_true")
+parser.add_option(  "--avr", dest="usingAVR", default=True,
+                    help="Use avr-gcc PROGMEM",
+                    action="store_true")
 
 
 
@@ -57,7 +63,11 @@ headName = options.headName
 seqPrefix = options.seqPrefix
 seqSuffix = options.seqSuffix
 sizeOptimize = options.sizeOptimize
-
+usinglibmaple = options.usinglibmaple
+if (usinglibmaple):
+    usingAVR = False
+else:
+    usingAVR = options.usingAVR
 
 if (not inFile or len(inFile)<4):
     inFile=input("Please enter the name (and path if not in current"+
@@ -82,8 +92,15 @@ if (not seqPrefix):
 if (not seqSuffix):
     seqSuffix=''
 
-postype = "PROGMEM prog_uint16_t "
-seqtype = "PROGMEM transition_t "
+postype = 'prog_uint16_t '
+seqtype = 'transition_t '
+
+if (usingAVR):
+    storageDef = 'PROGMEM '
+elif (usinglibmaple):
+    storageDef = ' __FLASH__ '
+else:
+    storageDef = ''
 
 templist = []
 pmetlist = []
@@ -132,7 +149,13 @@ moFi.close()
 
 
 if (sizeOptimize):
-    punklist.append(postype+seqPrefix+outFile[:-2]+seqSuffix+'_id[] = {'+str(numActiveServos))
+    if (usingAVR):
+        punklist.append(storageDef+postype+seqPrefix+outFile[:-2]+seqSuffix+'_id[] = {'+str(numActiveServos))
+    elif (usinglibmaple):
+        punklist.append(postype+seqPrefix+outFile[:-2]+seqSuffix+'_id[]'+storageDef+'= {'+str(numActiveServos))
+    else:
+        punklist.append(postype+seqPrefix+outFile[:-2]+seqSuffix+'_id[] = {'+str(numActiveServos))
+
     for indice in range(25):
         if (activeServos[indice]==1):
             punklist.append(','+str(indice))
@@ -152,17 +175,40 @@ for index in range(len(rawlist)):
             del punklist[:]
 
             if (not sizeOptimize):
-                punklist.append(postype+seqPrefix+rawlist[index][0]+seqSuffix+'_id[] = {'+str(numActiveServos))
+                if (usingAVR):
+                    punklist.append(storageDef+postype+seqPrefix+rawlist[index][0]+seqSuffix+'_id[] = {'+str(numActiveServos))
+                elif (usinglibmaple):
+                    punklist.append(postype+seqPrefix+rawlist[index][0]+seqSuffix+'_id[]'+storageDef+'= {'+str(numActiveServos))
+                else:
+                    punklist.append(postype+seqPrefix+rawlist[index][0]+seqSuffix+'_id[] = {'+str(numActiveServos))
+                
                 for indice in range(25):
                    if (activeServos[indice]==1):
                         punklist.append(','+str(indice))
                 punklist.append('};')
-                templist.append(seqtype+seqPrefix+rawlist[index][0]+seqSuffix+'[] = {{'+seqPrefix+rawlist[index][0]+seqSuffix+'_id,'+str(len(rawlist[index])-1)+'}')
+
+                if (usingAVR):
+                    templist.append(storageDef+seqtype+seqPrefix+rawlist[index][0]+seqSuffix+'[] = {{'+seqPrefix+rawlist[index][0]+seqSuffix+'_id,'+str(len(rawlist[index])-1)+'}')
+                elif (usinglibmaple):
+                    templist.append(seqtype+seqPrefix+rawlist[index][0]+seqSuffix+'[]'+storageDef+'= {{'+seqPrefix+rawlist[index][0]+seqSuffix+'_id,'+str(len(rawlist[index])-1)+'}')
+                else:
+                    templist.append(seqtype+seqPrefix+rawlist[index][0]+seqSuffix+'[] = {{'+seqPrefix+rawlist[index][0]+seqSuffix+'_id,'+str(len(rawlist[index])-1)+'}')
             else:
-                templist.append(seqtype+seqPrefix+rawlist[index][0]+seqSuffix+'[] = {{'+seqPrefix+outFile[:-2]+seqSuffix+'_id,'+str(len(rawlist[index])-1)+'}')
+                if (usingAVR):
+                    templist.append(storageDef+seqtype+seqPrefix+rawlist[index][0]+seqSuffix+'[] = {{'+seqPrefix+outFile[:-2]+seqSuffix+'_id,'+str(len(rawlist[index])-1)+'}')
+                elif (usinglibmaple):
+                    templist.append(seqtype+seqPrefix+rawlist[index][0]+seqSuffix+'[]'+storageDef+'= {{'+seqPrefix+outFile[:-2]+seqSuffix+'_id,'+str(len(rawlist[index])-1)+'}')
+                else:
+                    templist.append(seqtype+seqPrefix+rawlist[index][0]+seqSuffix+'[] = {{'+seqPrefix+outFile[:-2]+seqSuffix+'_id,'+str(len(rawlist[index])-1)+'}')
 
         if (pose>0):
-            pmetlist.append(postype+seqPrefix+rawlist[index][0]+seqSuffix+'_'+str(pose)+'[] = {'+str(numActiveServos))
+            if (usingAVR):
+                pmetlist.append(storageDef+postype+seqPrefix+rawlist[index][0]+seqSuffix+'_'+str(pose)+'[] = {'+str(numActiveServos))
+            elif (usinglibmaple):
+                pmetlist.append(postype+seqPrefix+rawlist[index][0]+seqSuffix+'_'+str(pose)+'[]'+storageDef+'= {'+str(numActiveServos))
+            else:
+                pmetlist.append(postype+seqPrefix+rawlist[index][0]+seqSuffix+'_'+str(pose)+'[] = {'+str(numActiveServos))
+
             splitlist=re.split(" ", rawlist[index][pose])
 
             for indice in range(25):
@@ -195,7 +241,12 @@ for index in range(len(rawlist)):
 
 poFi = open(outFile, 'w')
 
-poFi.write('#ifndef '+headName+'\n#define '+headName+'\n\n#include <avr/pgmspace.h>\n\n\n')
+if (usingAVR):
+    poFi.write('#ifndef '+headName+'\n#define '+headName+'\n\n#include <avr/pgmspace.h>\n\n\n')
+elif (usinglibmaple):
+    poFi.write('#ifndef '+headName+'\n#define '+headName+'\n\n#include <BioloidController.h>\n\n\n')
+else:
+    poFi.write('#ifndef '+headName+'\n#define '+headName+'\n\n\n')
 
 if (not sizeOptimize):
     for index in range(len(rawlist)):
