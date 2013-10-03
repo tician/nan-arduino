@@ -25,6 +25,7 @@
  */
 
 #ifndef MAGNETOMETER_H_
+#define MAGNETOMETER_H_
 
 #include "Wire.h"
 #include "sensor.h"

@@ -25,6 +25,7 @@
  */
 
 #ifndef BAROMETER_H_
+#define BAROMETER_H_
 
 #include "Wire.h"
 #include "sensor.h"

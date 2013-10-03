@@ -25,6 +25,7 @@
  */
 
 #ifndef GYROSCOPE_H_
+#define GYROSCOPE_H_
 
 #include "Wire.h"
 #include "sensor.h"

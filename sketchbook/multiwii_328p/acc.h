@@ -25,6 +25,7 @@
  */
 
 #ifndef ACCELEROMETER_H_
+#define ACCELEROMETER_H_
 
 #include "Wire.h"
 #include "sensor.h"
@@ -44,6 +45,20 @@ volatile sensor_t acc_;
 //  1: 
 //  0: 
 
+// Data Register XL (0x02)
+#define ACC_ADDR_XL			0x02
+// Data Register XH (0x03)
+#define ACC_ADDR_XH			0x03
+// Data Register YL (0x04)
+#define ACC_ADDR_YL			0x04
+// Data Register YH (0x05)
+#define ACC_ADDR_YH			0x05
+// Data Register ZL (0x06)
+#define ACC_ADDR_ZL			0x06
+// Data Register ZH (0x07)
+#define ACC_ADDR_ZH			0x07
+// Data Register Temp (0x08)
+#define ACC_ADDR_T			0x08
 
 void accStart(void)
 {
@@ -57,13 +72,19 @@ void accGet(void)
 	if (Wire.read()&(1<<0))
 	{
 		int16_t x=0,y=0,z=0;
-		Wire.requestFrom(ACC_ADDR_XH, 6);
-		x = (Wire.read())<<8);
-		x += (Wire.read()&0xFF);
-		y = (Wire.read()<<8);
-		y += (Wire.read()&0xFF);
-		z = (Wire.read()<<8);
-		z += (Wire.read()&0xFF);
+		Wire.requestFrom(ACC_ADDR_XL, 6);
+		x = (Wire.read())>>2);
+		x += (Wire.read()<<6);
+		x += ((x&(1<<13))<<2);
+		x &= ~(1<<13);
+		y = (Wire.read()>>2);
+		y += (Wire.read()<<6);
+		y += ((y&(1<<13))<<2);
+		y &= ~(1<<13);
+		z = (Wire.read()>>2);
+		z += (Wire.read()<<6);
+		z += ((z&(1<<13))<<2);
+		z &= ~(1<<13);
 
 //#define ACC_ORIENTATION(X, Y, Z) {accADC[ROLL]  = -X; accADC[PITCH]  = -Y; accADC[YAW]  =  Z;}
 		acc_.x = -x;
