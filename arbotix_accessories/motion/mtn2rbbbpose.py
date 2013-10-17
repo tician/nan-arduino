@@ -92,7 +92,10 @@ if (not seqPrefix):
 if (not seqSuffix):
     seqSuffix=''
 
-postype = 'prog_uint16_t '
+if (usingAVR):
+    postype = 'prog_uint16_t '
+else:
+    postype = 'unsigned int '
 seqtype = 'transition_t '
 
 if (usingAVR):
