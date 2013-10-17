@@ -22,7 +22,6 @@
  *******************************************************************************
 '''
 
-
 import re
 from optparse import OptionParser
 from datetime import datetime
@@ -30,19 +29,19 @@ from datetime import datetime
 
 parser = OptionParser()
 parser.add_option(  "-i", "--infile", dest="inFile",
-                    help="Name of input file", metavar="FILE",
+                    help="Name of input file (required)", metavar="FILE",
                     action="store", type="string")
 parser.add_option(  "-o", "--outfile", dest="outFile",
-                    help="Name of output file", metavar="FILE",
+                    help="Name of output file (optional)", metavar="FILE",
                     action="store", type="string")
 parser.add_option(  "-d", "--head", dest="headName",
-                    help="Header's #ifndef/#def", metavar="string",
+                    help="Header's #ifndef/#def (optional)", metavar="string",
                     action="store", type="string")
 parser.add_option(  "-s", "--suffix", dest="seqSuffix",
-                    help="Suffix for sequence names", metavar="string",
+                    help="Suffix for sequence names (optional)", metavar="string",
                     action="store", type="string")
 parser.add_option(  "-p", "--prefix", dest="seqPrefix",
-                    help="Prefix for sequence names", metavar="string",
+                    help="Prefix for sequence names (optional)", metavar="string",
                     action="store", type="string")
 
 (options, args) = parser.parse_args()
@@ -53,11 +52,8 @@ seqPrefix = options.seqPrefix
 seqSuffix = options.seqSuffix
 
 if (not inFile or len(inFile)<4):
-    inFile=input("Please enter the name (and path if not in current"+
-                 " directory)of the input '.mtn' file\n")
-    if (len(inFile)<4):
-        print("Wow.  The village callled...")
-        exit()
+    print("Minimum command-line options for proper usage is:\n python mtn2arbotix.py -i SomeRoboPlusMotionFile.mtn")
+    exit()
 
 if (not outFile or len(outFile)<4):
     outFile=inFile[:-3]+'h'
